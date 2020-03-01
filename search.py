@@ -97,7 +97,30 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import PriorityQueueWithFunction
+    # Data structure(Priority queue) to store the states with all the states in path to start state format: [(state,
+    # action taken, cost)]
+    # getCostOfActions will return count of no of direction sent to it in a list which will be
+    # used as cost
+    statesWithPath = PriorityQueueWithFunction(lambda states: problem.getCostOfActions([state[1] for state in states][1:0]))
+    # Adding with root node
+    statesWithPath.push([(problem.getStartState(), "Root", 0)])
+    closedStates = set([problem.getStartState()])
+
+    while not statesWithPath.isEmpty():
+        currentStateWithPath = statesWithPath.pop()
+        # Current state will be at the end that's why -1 is used
+        if problem.isGoalState(currentStateWithPath[-1][0]):
+            # Ignore the root while returning the directions
+            return [state[1] for state in currentStateWithPath][1:]
+        for suc in problem.getSuccessors(currentStateWithPath[-1][0]):
+            if suc[0] not in closedStates:
+                successorState = currentStateWithPath[:]
+                successorState.append(suc)
+                statesWithPath.push(successorState)
+        closedStates.add(currentStateWithPath[-1][0])
+
+    return []
 
 def nullHeuristic(state, problem=None):
     """
