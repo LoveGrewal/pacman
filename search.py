@@ -153,12 +153,55 @@ def nullHeuristic(state, problem=None):
     goal in the provided SearchProblem.  This heuristic is trivial.
     """
     return 0
-
+#python3 pacman.py -l tinyMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # f = g+h (final cost)
+    # g = cost to reach there from starting node
+    # h = guessed cost to reach the goal node from the present node (heuristic)
+    openList = []
+    closedList = []
+    pathList = []
+    startNode = [problem.getStartState(), 0, 0, 0]  # [statePosition, f, g, h]
+    openList.append(startNode)
+    pathList.append([startNode[0]," "])
 
+    while openList:
+        #Get Current Node
+        presentNode = min(openList, key = lambda t: t[1])
+        openList.remove(presentNode)
+        closedList.append(presentNode)
+        tempPath = [item[1] for item in pathList if item[0]==presentNode[0]]
+        tempPath = tempPath[0]
+
+        #Is it a Goal Node
+        if problem.isGoalState(presentNode[0]):
+            return tempPath.strip().split()
+
+        #Otherwise
+        children = problem.getSuccessors(presentNode[0])
+
+        for child in children:
+            if child[0] in [s for s, f, g, h in closedList]:
+                continue
+            # Generate children and their specifications
+            tempG = presentNode[2] + 1
+            tempH = heuristic(child[0], problem)
+            tempF = tempG + tempH
+            tempNode = [child[0], tempF, tempG, tempH]
+            tempNewPath = tempPath + " " + str(child[1])
+
+            # If Child is already in openList
+            if child[0] in [item[0] for item in openList]:
+                temp = [item for item in openList if item[0] == child[0]]
+                temp = temp[0]
+                if temp[2] < tempG:
+                    continue
+            # Add a new child to the openlist
+            openList.append(tempNode)
+            pathList.append([child[0], tempNewPath])
+    return []
 
 # Abbreviations
 bfs = breadthFirstSearch
