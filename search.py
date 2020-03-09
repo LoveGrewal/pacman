@@ -122,7 +122,36 @@ def depthFirstSearch(problem):
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import Queue
+    queue = Queue()
+    visited = []
+    path = Queue()
+    startState = problem.getStartState()
+
+    # if starting state is a goal state
+    if problem.isGoalState(startState):
+        return []
+
+    # Otherwise find the path for the goal state
+    queue.push(startState)
+    visited.append(startState)
+    path.push(' ')
+    visitedAndInProgressStates = []
+    visitedAndInProgressStates.append(startState)
+    while not queue.isEmpty():
+        tempPresentState = queue.pop()
+        tempPath = path.pop()
+        visited.append(tempPresentState)
+
+        if problem.isGoalState(tempPresentState):
+            return tempPath.split()
+
+        for state in problem.getSuccessors(tempPresentState):
+            if state[0] not in visitedAndInProgressStates:
+                visitedAndInProgressStates.append(state[0])
+                queue.push(state[0])
+                path.push(tempPath + " " + state[1])
+    return []
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
@@ -136,6 +165,7 @@ def uniformCostSearch(problem):
     # Adding with root node
     statesWithPath.push([(problem.getStartState(), "Root", 0)])
     closedStates = set([problem.getStartState()])
+    cloesedAndInProgressStates = set([problem.getStartState()])
 
     while not statesWithPath.isEmpty():
         currentStateWithPath = statesWithPath.pop()
@@ -144,7 +174,8 @@ def uniformCostSearch(problem):
             # Ignore the root while returning the directions
             return [state[1] for state in currentStateWithPath][1:]
         for suc in problem.getSuccessors(currentStateWithPath[-1][0]):
-            if suc[0] not in closedStates:
+            if suc[0] not in cloesedAndInProgressStates:
+                cloesedAndInProgressStates.add(suc[0])
                 successorState = currentStateWithPath[:]
                 successorState.append(suc)
                 statesWithPath.push(successorState)
