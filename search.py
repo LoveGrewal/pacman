@@ -104,13 +104,18 @@ def depthFirstSearch(problem):
     while not stack.isEmpty():
         tempPresentState = stack.pop()
         tempPath = path.pop()
+        visited.append(tempPresentState)
+        # print("\nPopped node::")
+        # print(tempPresentState)
+        # print("\nPopped path::")
+        # print(tempPath)
+        # print("\n\n")
+        if problem.isGoalState(tempPresentState):
+            return tempPath.split()
+
         for state in problem.getSuccessors(tempPresentState):
-            if problem.isGoalState(state[0]):
-                tempPath = tempPath + " " + state[1]
-                return tempPath.split()
             if state[0] not in visited:
                 stack.push(state[0])
-                visited.append(state[0])
                 path.push(tempPath + " " + state[1])
     return []
 
