@@ -148,7 +148,8 @@ def breadthFirstSearch(problem):
 
         for state in problem.getSuccessors(tempPresentState):
             if state[0] not in visitedAndInProgressStates:
-                visitedAndInProgressStates.append(state[0])
+                if not problem.isGoalState(state[0]):
+                    visitedAndInProgressStates.append(state[0])
                 queue.push(state[0])
                 path.push(tempPath + " " + state[1])
     return []
@@ -160,8 +161,14 @@ def uniformCostSearch(problem):
     # Data structure(Priority queue) to store the states with all the states in path to start state format: [(state,
     # action taken, cost)]
     # getCostOfActions will return count of no of direction sent to it in a list which will be
+    def calculateCost(states):
+        cost = 0
+        #length = len(states)
+        for c in [state[2] for state in states]:
+            cost = cost + c
+        return cost
     # used as cost
-    statesWithPath = PriorityQueueWithFunction(lambda states: problem.getCostOfActions([state[1] for state in states][1:0]))
+    statesWithPath = PriorityQueueWithFunction(lambda states: calculateCost(states))
     # Adding with root node
     statesWithPath.push([(problem.getStartState(), "Root", 0)])
     closedStates = set([problem.getStartState()])
@@ -175,7 +182,8 @@ def uniformCostSearch(problem):
             return [state[1] for state in currentStateWithPath][1:]
         for suc in problem.getSuccessors(currentStateWithPath[-1][0]):
             if suc[0] not in cloesedAndInProgressStates:
-                cloesedAndInProgressStates.add(suc[0])
+                if not problem.isGoalState(suc[0]):
+                    cloesedAndInProgressStates.add(suc[0])
                 successorState = currentStateWithPath[:]
                 successorState.append(suc)
                 statesWithPath.push(successorState)
