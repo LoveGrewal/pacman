@@ -273,21 +273,33 @@ class CornersProblem(search.SearchProblem):
     You must select a suitable state space and successor function
     """
 
-    def __init__(self, startingGameState):
+    def __init__(self, startingGameState, costFn = lambda x: 1, warn=True, visualize=True):
         """
         Stores the walls, pacman's starting position and corners.
         """
         self.walls = startingGameState.getWalls()
         self.startingPosition = startingGameState.getPacmanPosition()
+        self.costFn = costFn
+        self.visualize = visualize
+
+        # if warn and (startingGameState.getNumFood() != 1 or not startingGameState.hasFood(*goal)):
+        #     print('Warning: this does not look like a regular search maze')
+
         top, right = self.walls.height-2, self.walls.width-2
         self.corners = ((1,1), (1,top), (right, 1), (right, top))
+        self.goalState_found = {(1,1): False, (1,top): False , (right, 1): False, (right, top): False}
+        self.numberOfCornersFound = 0
         for corner in self.corners:
             if not startingGameState.hasFood(*corner):
                 print('Warning: no food in corner ' + str(corner))
-        self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
+
+        #self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+
+        # For display purposes
+        self._visited, self._visitedlist, self._expanded = {}, [], 0
 
     def getStartState(self):
         """
@@ -295,14 +307,33 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
+        return (self.startingPosition, self.numberOfCornersFound)
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
+
+        isGoal = False
+
+        for corner in self.corners:
+            if corner == state[0]:
+                self.numberOfCornersFound += 1
+                self.goalState_found.update({state[0]: "Found"})
+                if all(value == "Found" for value in self.goalState_found.values()):
+                    isGoal = True
+
+        if isGoal and self.visualize:
+            self._visitedlist.append(state[0])
+            import __main__
+            if '_display' in dir(__main__):
+                if 'drawExpandedCells' in dir(__main__._display): #@UndefinedVariable
+                    __main__._display.drawExpandedCells(self._visitedlist) #@UndefinedVariable
+
+        return isGoal
 
     def getSuccessors(self, state):
         """
@@ -317,12 +348,18 @@ class CornersProblem(search.SearchProblem):
 
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
+            x, y = state[0]
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
+
+            if not hitsWall:
+                nextState = (nextx, nexty)
+                cost = self.costFn(nextState)
+                successors.append(((nextState, self.numberOfCornersFound), action, cost))
 
             "*** YOUR CODE HERE ***"
 
