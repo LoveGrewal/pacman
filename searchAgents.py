@@ -536,10 +536,6 @@ def foodHeuristic(state, problem):
     position, foodGrid = state
     foodList = foodGrid.asList()
 
-    print(foodList)
-    print(position)
-
-    print("\n")
     gameState = problem.getGameState()
     if len(foodList) == 0:
         return 0
@@ -551,7 +547,7 @@ def foodHeuristic(state, problem):
     #d2 = mazeDistance(position, closestPoint, gameState) + numberOfNodesLeft
     #d3 = mazeDistance(position, closestPoint, gameState) + mazeDistance(closestPoint, farthestFood, gameState)
     dis1, path = mazeDistance(position, closestPoint, gameState)
-    #dis2 = mazeDistance(closestPoint, farthestFood, gameState)
+    dis2 , p= mazeDistance(closestPoint, farthestFood, gameState)
     leftPoints2 = 0
     for (x, y) in foodList:
         flag = 0
@@ -563,7 +559,7 @@ def foodHeuristic(state, problem):
             if y != position[1] and y != closestPoint[1]:
                 leftPoints2 = leftPoints2 + 1
 
-    return dis1 + leftPoints2
+    return dis1 + dis2*0.66
 
 
 def farthestPoint(fromPoint, candidatesList):
@@ -619,7 +615,6 @@ class ClosestDotSearchAgent(SearchAgent):
 
         "*** YOUR CODE HERE ***"
         candidatesList = food.asList()
-        print(candidatesList)
         closestPoint = candidatesList[0]
         fromPoint = startPosition
         closestCost, path = mazeDistance(fromPoint, closestPoint, gameState)
@@ -630,7 +625,6 @@ class ClosestDotSearchAgent(SearchAgent):
                 closestCost = thisCost
                 closestPoint = candidate
                 path = thisPath
-
         return path
 
 class AnyFoodSearchProblem(PositionSearchProblem):
