@@ -394,7 +394,8 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+     # Default to trivial solution
+    util.raiseNotDefined()
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -416,13 +417,16 @@ class FoodSearchProblem:
         self.walls = startingGameState.getWalls()
         self.startingGameState = startingGameState
         self._expanded = 0 # DO NOT CHANGE
-        self.heuristicInfo = {} # A dictionary for the heuristic to store information
+        self.heuristicInfo = {'FL': [(0, 0)]} # A dictionary for the heuristic to store information
 
     def getStartState(self):
         return self.start
 
     def isGoalState(self, state):
         return state[1].count() == 0
+
+    def getGameState(self):
+        return self.startingGameState
 
     def getSuccessors(self, state):
         "Returns successor states, the actions they require, and a cost of 1."
@@ -458,6 +462,49 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
 
+
+def manhattanDistance (pointA, pointB):
+    return abs(pointA[0] - pointB[0]) + abs(pointA[1] - pointB[1])
+
+
+
+
+
+def closestPoint2(fromPoint, candidatesList, gameState):
+    if len(candidatesList) == 0:
+        return None
+
+    closestPoint = candidatesList[0]
+    closestCost = manhattanDistance(fromPoint, closestPoint)
+
+    for candidate in candidatesList[1:]:
+        thisCost = manhattanDistance(fromPoint, candidate)
+        if thisCost < closestCost:
+            closestCost = thisCost
+            closestPoint = candidate
+        if thisCost == closestCost:
+            thisCost, p1= mazeDistance(fromPoint, candidate, gameState)
+            closestCost, p2= mazeDistance(fromPoint, closestPoint, gameState)
+            if thisCost < closestCost:
+                closestCost = thisCost
+                closestPoint = candidate
+
+    return closestPoint
+
+def newPosition(pos, direction):
+    if direction == 'South':
+        pos = (pos[0], pos[1] - 1)
+        return pos
+    if direction == 'North':
+        pos = (pos[0], pos[1] + 1)
+        return pos
+    if direction == 'West':
+        pos = (pos[0]-1, pos[1])
+        return pos
+    if direction == 'East':
+        pos = (pos[0]+1, pos[1])
+        return pos
+
 def foodHeuristic(state, problem):
     """
     Your heuristic for the FoodSearchProblem goes here.
@@ -487,8 +534,60 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    foodList = foodGrid.asList()
+
+    print(foodList)
+    print(position)
+
+    print("\n")
+    gameState = problem.getGameState()
+    if len(foodList) == 0:
+        return 0
+    farthestFood, secondFarthestFood = farthestPoint(position, foodList)
+    closestPoint = closestPoint2(position, foodList, gameState)
+
+
+    #d1 = mazeDistance(secondFarthestFood, farthestFood, gameState) + mazeDistance(position, secondFarthestFood, gameState)
+    #d2 = mazeDistance(position, closestPoint, gameState) + numberOfNodesLeft
+    #d3 = mazeDistance(position, closestPoint, gameState) + mazeDistance(closestPoint, farthestFood, gameState)
+    dis1, path = mazeDistance(position, closestPoint, gameState)
+    #dis2 = mazeDistance(closestPoint, farthestFood, gameState)
+    leftPoints2 = 0
+    for (x, y) in foodList:
+        flag = 0
+        if x != position[0] and x != closestPoint[0]:
+            leftPoints2 = leftPoints2 + 1
+            flag = 1
+
+        if flag == 0:
+            if y != position[1] and y != closestPoint[1]:
+                leftPoints2 = leftPoints2 + 1
+
+    return dis1 + leftPoints2
+
+
+def farthestPoint(fromPoint, candidatesList):
+    if len(candidatesList) == 0:
+        return None
+
+    farthestPoint = candidatesList[0]
+    farthestCost = manhattanDistance(fromPoint, farthestPoint)
+    secondFarthestPoint = fromPoint
+    secondFarthestCost = 0
+
+    for candidate in candidatesList[1:]:
+        thisCost = manhattanDistance(fromPoint, candidate)
+        if thisCost > farthestCost:
+            farthestCost = thisCost
+            secondFarthestPoint = farthestPoint
+            farthestPoint = candidate
+        else:
+            if farthestCost > thisCost > secondFarthestCost:
+                secondFarthestCost = thisCost
+                secondFarthestPoint = candidate
+
+    return farthestPoint, secondFarthestPoint
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -519,7 +618,20 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        candidatesList = food.asList()
+        print(candidatesList)
+        closestPoint = candidatesList[0]
+        fromPoint = startPosition
+        closestCost, path = mazeDistance(fromPoint, closestPoint, gameState)
+
+        for candidate in candidatesList[1:]:
+            thisCost, thisPath = mazeDistance(fromPoint, candidate, gameState)
+            if thisCost < closestCost:
+                closestCost = thisCost
+                closestPoint = candidate
+                path = thisPath
+
+        return path
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -573,4 +685,7 @@ def mazeDistance(point1, point2, gameState):
     assert not walls[x1][y1], 'point1 is a wall: ' + str(point1)
     assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
     prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False, visualize=False)
-    return len(search.bfs(prob))
+    path = search.bfs(prob)
+    return len(path), path
+
+# python3 pacman.py -l trickySearch -p AStarFoodSearchAgent
