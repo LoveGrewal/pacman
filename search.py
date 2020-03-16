@@ -72,6 +72,31 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+def searchTree(problem, data_structure):
+
+    statesWithPath = data_structure
+    # Adding with root node
+    statesWithPath.push([(problem.getStartState(), "Root", 0)])
+    closedStates = set([problem.getStartState()])
+    cloesedAndInProgressStates = set([problem.getStartState()])
+
+    while not statesWithPath.isEmpty():
+        currentStateWithPath = statesWithPath.pop()
+        # Current state will be at the end that's why -1 is used
+        if problem.isGoalState(currentStateWithPath[-1][0]):
+            # Ignore the root while returning the directions
+            return [state[1] for state in currentStateWithPath][1:]
+        for suc in problem.getSuccessors(currentStateWithPath[-1][0]):
+            if suc[0] not in cloesedAndInProgressStates:
+                if not problem.isGoalState(suc[0]):
+                    cloesedAndInProgressStates.add(suc[0])
+                successorState = currentStateWithPath[:]
+                successorState.append(suc)
+                statesWithPath.push(successorState)
+        closedStates.add(currentStateWithPath[-1][0])
+
+    return []
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first.
@@ -123,36 +148,8 @@ def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
     from util import Queue
-    queue = Queue()
-    visited = []
-    path = Queue()
-    startState = problem.getStartState()
-
-    # if starting state is a goal state
-    if problem.isGoalState(startState):
-        return []
-
-    # Otherwise find the path for the goal state
-    queue.push(startState)
-    visited.append(startState)
-    path.push(' ')
-    visitedAndInProgressStates = []
-    visitedAndInProgressStates.append(startState)
-    while not queue.isEmpty():
-        tempPresentState = queue.pop()
-        tempPath = path.pop()
-        visited.append(tempPresentState)
-
-        if problem.isGoalState(tempPresentState):
-            return tempPath.split()
-
-        for state in problem.getSuccessors(tempPresentState):
-            if state[0] not in visitedAndInProgressStates:
-                if not problem.isGoalState(state[0]):
-                    visitedAndInProgressStates.append(state[0])
-                queue.push(state[0])
-                path.push(tempPath + " " + state[1])
-    return []
+    search_technique = Queue()
+    return searchTree(problem, search_technique)
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
@@ -168,28 +165,8 @@ def uniformCostSearch(problem):
             cost = cost + c
         return cost
     # used as cost
-    statesWithPath = PriorityQueueWithFunction(lambda states: calculateCost(states))
-    # Adding with root node
-    statesWithPath.push([(problem.getStartState(), "Root", 0)])
-    closedStates = set([problem.getStartState()])
-    cloesedAndInProgressStates = set([problem.getStartState()])
-
-    while not statesWithPath.isEmpty():
-        currentStateWithPath = statesWithPath.pop()
-        # Current state will be at the end that's why -1 is used
-        if problem.isGoalState(currentStateWithPath[-1][0]):
-            # Ignore the root while returning the directions
-            return [state[1] for state in currentStateWithPath][1:]
-        for suc in problem.getSuccessors(currentStateWithPath[-1][0]):
-            if suc[0] not in cloesedAndInProgressStates:
-                if not problem.isGoalState(suc[0]):
-                    cloesedAndInProgressStates.add(suc[0])
-                successorState = currentStateWithPath[:]
-                successorState.append(suc)
-                statesWithPath.push(successorState)
-        closedStates.add(currentStateWithPath[-1][0])
-
-    return []
+    search_technique = PriorityQueueWithFunction(lambda states: calculateCost(states))
+    return searchTree(problem, search_technique)
 
 def nullHeuristic(state, problem=None):
     """
