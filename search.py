@@ -178,52 +178,21 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    # f = g+h (final cost)
-    # g = cost to reach there from starting node
-    # h = guessed cost to reach the goal node from the present node (heuristic)
-    openList = []
-    closedList = []
-    pathList = []
-    startNode = [problem.getStartState(), 0, 0, 0]  # [statePosition, f, g, h]
-    openList.append(startNode)
-    pathList.append([startNode[0]," ",0])
-
-    while openList:
-        #Get Current Node
-        presentNode = min(openList, key = lambda t: t[1])
-        openList.remove(presentNode)
-        closedList.append(presentNode)
-        tempPath = [item[1] for item in pathList if item[0]==presentNode[0] and item[2] == presentNode[1]]
-        tempPath = tempPath[0]
-
-        #Is it a Goal Node
-        if problem.isGoalState(presentNode[0]):
-            return tempPath.strip().split(" ")
-
-        #otherwise
-        children = problem.getSuccessors(presentNode[0])
-
-        for child in children:
-            if child[0] in [s for s, f, g, h in closedList]:
-                continue
-            # Generate children and their specifications
-            tempG = presentNode[2] + child[2]
-            tempH = heuristic(child[0], problem)
-            tempF = tempG + tempH
-            tempNode = [child[0], tempF, tempG, tempH]
-            tempNewPath = tempPath + " " + str(child[1])
-
-            # If Child is already in openList
-            if child[0] in [item[0] for item in openList]:
-                temp = [item for item in openList if item[0] == child[0]]
-                temp = temp[0]
-                if temp[2] < tempG:
-                    continue
-            # Add a new child to the openlist
-            openList.append(tempNode)
-            pathList.append([child[0], tempNewPath, tempF])
-    return []
+    from util import PriorityQueueWithFunction
+    # Data structure(Priority queue) to store the states with all the states in path to start state format: [(state,
+    # action taken, cost)]
+    # getCostOfActions will return count of no of direction sent to it in a list which will be
+    def calculateCost(states):
+        cost = 0
+        #length = len(states)
+        for c in [state[2] for state in states]:
+            cost = cost + c
+        heuristic_cost = heuristic(states[-1][0], problem)
+        cost += heuristic_cost
+        return cost
+    # used as cost
+    search_technique = PriorityQueueWithFunction(lambda states: calculateCost(states))
+    return searchTree(problem, search_technique)
 
 # Abbreviations
 bfs = breadthFirstSearch
